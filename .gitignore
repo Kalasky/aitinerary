@@ -1,0 +1,5 @@
+docker-compose.yml
+.vscode/*
+!.vscode/settings.json
+.env
+node_modules
