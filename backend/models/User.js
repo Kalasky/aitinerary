@@ -1,11 +1,4 @@
-const mongoose = require("mongoose");
 import { object, string, boolean } from "yup";
-
-const UserSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true },
-  whiteListed: { type: Boolean, default: false },
-  savedTrips: [{ type: mongoose.Schema.Types.ObjectId, ref: "Trip" }],
-});
 
 const UserValidationSchema = object({
   email: string().email().required("Email is required"),
@@ -17,4 +10,4 @@ UserSchema.methods.validate = function (data) {
   return UserValidationSchema.validate(data);
 };
 
-export default mongoose.model("User", UserSchema);
+module.exports = validateUser;

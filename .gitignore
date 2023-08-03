@@ -3,3 +3,5 @@ docker-compose.yml
 !.vscode/settings.json
 .env
 node_modules
+finetuned.json
+finetuned_prepared.jsonl
