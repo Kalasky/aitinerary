@@ -1,58 +1,4 @@
-// Desc: Handling of trip related requests (e.g. add trip, get trip, etc.)
-const { generateItinerary } = require("../services/aiService");
-const { abroadLocation, inCountryLocation } = require("../services/aiService");
 const { ObjectId } = require("mongodb");
-
-const addTrip = async (req, res) => {
-  let {
-    departureCity,
-    destination,
-    budget,
-    duration,
-    landscapes,
-    numberOfPeople,
-    theme,
-  } = req.body.preferences;
-
-  try {
-    if (destination === "abroad") {
-      destination = await abroadLocation(departureCity);
-      console.log(destination);
-    } else if (destination === "local") {
-      destination = await inCountryLocation(departureCity);
-      console.log(destination);
-    }
-  } catch (error) {
-    console.error("Error generating destination: ", error);
-    return [];
-  }
-
-  const trip = {
-    preferences: {
-      departureCity,
-      destination,
-      budget,
-      duration,
-      landscapes,
-      numberOfPeople,
-      theme,
-    },
-    itinerary: [],
-    user: "",
-  };
-
-  try {
-    const tripRes = await req.app.locals.db.collection("trips").insertOne(trip);
-
-    const db = req.app.locals.db;
-    generateItinerary(db, tripRes.insertedId.toString(), trip.preferences);
-
-    res.status(201).json({ tripId: tripRes.insertedId.toString() });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Something went wrong." });
-  }
-};
 
 const getTrip = async (req, res) => {
   const tripId = req.params.tripId;
@@ -74,7 +20,38 @@ const getTrip = async (req, res) => {
   }
 };
 
+const getPexelsImage = async (req, res) => {
+  const { destination } = req.body;
+
+  const config = {
+    method: "GET",
+    url: `https://api.pexels.com/v1/search?query=${destination}&page=1&per_page=1&orientation=landscape&size=large&per_page=10`,
+    headers: {
+      Authorization: process.env.PEXELS_API_KEY,
+    },
+  };
+
+  try {
+    const response = await fetch(config.url, config);
+    const data = await response.json();
+
+    const sortedPhotos = data.photos.sort((a, b) => {
+      const dimensionsA = a.width * a.height;
+      const dimensionsB = b.width * b.height;
+
+      if (dimensionsA > dimensionsB) return -1;
+      if (dimensionsA < dimensionsB) return 1;
+      return 0;
+    });
+
+    res.status(200).json(sortedPhotos[0].src.large2x);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "Something went wrong." });
+  }
+};
+
 module.exports = {
-  addTrip,
   getTrip,
+  getPexelsImage,
 };

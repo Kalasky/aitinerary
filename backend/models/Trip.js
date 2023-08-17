@@ -2,13 +2,14 @@ const { object, string, array, number } = require("yup");
 
 const TripValidationSchema = object().shape({
   preferences: object().shape({
-    departureCity: string().required("Departure city is required"),
-    destination: string().required("Destination is required"),
-    duration: string().required("Duration is required"),
-    numberOfPeople: string().required("Number of people is required"),
-    budget: string().required("Budget is required"),
-    landscapes: string().required("Landscapes is required"),
-    theme: string(),
+    departureCity: string().required("Trip departure city is required"),
+    destination: string().required("Trip destination is required"),
+    duration: string().required("Trip duration is required"),
+    numberOfTravelers: number().required("Number of travelers is required"),
+    budget: string().required("Trip budget is required"),
+    ambience: string().required("Trip ambience is required"),
+    theme: array().of(string()),
+    ambience: array().of(string()),
   }),
   itinerary: string(),
   detailedItinerary: array().of(
@@ -27,8 +28,8 @@ const TripValidationSchema = object().shape({
   user: string(),
 });
 
-async function validateTrip(data) {
+async function validateSurpriseTrip(data) {
   return await TripValidationSchema.validate(data);
 }
 
-module.exports = validateTrip;
+module.exports = validateSurpriseTrip;

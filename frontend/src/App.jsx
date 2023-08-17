@@ -1,13 +1,17 @@
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import PreferenceForm from "./components/SurpriseFlow/PreferenceForm";
-import ItineraryView from "./components/ItineraryView"
+import SurpriseForm from "./components/SurpriseFlow/SurpriseForm";
+import DefaultForm from "./components/DefaultFlow/DefaultForm";
+import TripView from "./pages/TripView";
+import Navbar from "./components/Navbar";
 
 function App() {
   return (
     <Router>
+      <Navbar />
       <Routes>
-        <Route path="/creation" element={<PreferenceForm />} />
-        <Route path="/trip/:tripId/:days" element={<ItineraryView />} />
+        <Route path="/surprise" element={<SurpriseForm />} />
+        <Route path="/default" element={<DefaultForm />} />
+        <Route path="/trip/:tripId/:days" element={<TripView />} />
       </Routes>
     </Router>
   );
