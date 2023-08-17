@@ -2,7 +2,7 @@
 const {
   getLocationDetails,
   getLocationsforDestination,
-  getLocationReviews,
+  // getLocationReviews,
 } = require("../utils/tripAdvisorApi");
 
 const fetchTripAdvisorData = async (itinerary) => {
@@ -21,11 +21,11 @@ const fetchTripAdvisorData = async (itinerary) => {
 
     for (let locationId of locationIds) {
       let locationDetails = await getLocationDetails(locationId);
-      let locationReviews = await getLocationReviews(locationId);
+      // let locationReviews = await getLocationReviews(locationId);
 
       detailedLocations.push({
         ...locationDetails,
-        reviews: locationReviews,
+        // reviews: locationReviews,
       });
     }
   }

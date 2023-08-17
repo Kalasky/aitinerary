@@ -187,9 +187,9 @@ Each schema has a corresponding validation schema that is used to validate the d
 
 - `destination`: A required string field that represents the destination of the trip.
 - `duration`: A required string field that specifies the duration of the trip.
-- `numberOfPeople`: A required string field indicating the number of people participating in the trip.
+- `numberOfTravelers`: A required string field indicating the number of travelers participating in the trip.
   `budget`: A required string field representing the budget for the trip.
-- `landscapes`: An array of strings that stores landscape information related to the trip.
+- `ambience`: An array of strings that stores ambience information related to the trip.
 - `theme`: A string field that represents the theme of the trip.
 - `itinerary`: An array of objects that stores the itinerary information related to the trip.
 - `user`: A reference to the User schema.
@@ -198,9 +198,9 @@ Each schema has a corresponding validation schema that is used to validate the d
 const TripSchema = new mongoose.Schema({
   destination: { type: String, required: true },
   duration: { type: String, required: true },
-  numberOfPeople: { type: String, required: true },
+  numberOfTravelers: { type: String, required: true },
   budget: { type: String, required: true },
-  landscapes: [{ type: String }],
+  ambience: [{ type: String }],
   theme: { type: String },
   itinerary: [
     {
@@ -215,9 +215,9 @@ const TripSchema = new mongoose.Schema({
 const TripValidationSchema = object().shape({
   destination: string().required("Destination is required"),
   duration: string().required("Duration is required"),
-  numberOfPeople: string().required("Number of people is required"),
+  numberOfTravelers: string().required("Number of travelers is required"),
   budget: string().required("Budget is required"),
-  landscapes: array().of(string()),
+  ambience: array().of(string()),
   theme: string(),
   itinerary: array().of(
     object({

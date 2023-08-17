@@ -1,32 +1,25 @@
-// Desc: API requests that directly interact with TripAdvisor
-const redis = require("../utils/redisClient");
-
-const getLocationsforDestination = async (searchQuery, category) => {
+const getLocationIDforDestination = async (destination) => {
   const options = {
     method: "GET",
     headers: { accept: "application/json" },
+    "User-Agent": "Triplio",
   };
 
   let response = await fetch(
-    `https://api.content.tripadvisor.com/api/v1/location/search?key=${process.env.TRIPADVISOR_API_KEY}&searchQuery=${searchQuery}&category=${category}`,
+    `https://api.content.tripadvisor.com/api/v1/location/search?key=${process.env.TRIPADVISOR_API_KEY}&searchQuery=${destination}`,
     options
   );
 
   let data = await response.json();
-  return data.data.map((location) => location.location_id);
+  console.log(data);
+  return data.data[0].location_id;
 };
 
 const getLocationDetails = async (locationId) => {
-  const cachedLocationDetails = await redis.get(locationId);
-
-  if (cachedLocationDetails) {
-    console.log("Retrieved location details from cache");
-    return JSON.parse(cachedLocationDetails);
-  }
-
   const options = {
     method: "GET",
     headers: { accept: "application/json" },
+    "User-Agent": "Triplio",
   };
 
   let response = await fetch(
@@ -40,26 +33,44 @@ const getLocationDetails = async (locationId) => {
     location_id: data.location_id,
     name: data.name,
     description: data.description,
-    price_level: data.price_level,
-    hours: data.hours,
     latitude: data.latitude,
     longitude: data.longitude,
   };
 
-  await redis.set(
-    locationId,
-    JSON.stringify(filteredData),
-    "EX",
-    60 * 60 * 24 * 7
+  return filteredData;
+};
+
+const getActivitiesInDestinationRadius = async (
+  activity,
+  latitude,
+  longitude
+) => {
+  const options = {
+    method: "GET",
+    headers: { accept: "application/json" },
+    "User-Agent": "Triplio",
+  };
+
+  let response = await fetch(
+    `https://api.content.tripadvisor.com/api/v1/location/search?searchQuery=${activity}&language=en&key=${process.env.TRIPADVISOR_API_KEY}&radius=100&radiusUnit=mi&latLong=${latitude},${longitude}`,
+    options
   );
 
-  return filteredData;
+  let data = await response.json();
+
+  if (data.data && data.data.length > 0) {
+    return data.data[0];
+  } else {
+    console.error("No data found for activity", activity);
+    return null;
+  }
 };
 
 const getLocationReviews = async (locationId) => {
   const options = {
     method: "GET",
     headers: { accept: "application/json" },
+    "User-Agent": "Triplio",
   };
 
   let response = await fetch(
@@ -81,7 +92,8 @@ const getLocationReviews = async (locationId) => {
 };
 
 module.exports = {
-  getLocationsforDestination,
+  getLocationIDforDestination,
   getLocationDetails,
   getLocationReviews,
+  getActivitiesInDestinationRadius,
 };
