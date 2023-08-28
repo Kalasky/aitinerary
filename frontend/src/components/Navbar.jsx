@@ -35,20 +35,14 @@ const Navbar = () => {
           onClick={() => window.scrollTo(0, 0)}
           className="flex items-center"
         >
-          <span className="sr-only">Workflow</span>
           <img
             className="h-8 w-auto sm:h-10 max-sm:hidden"
             src={main_logo}
             alt="Logo"
-          />
+          />{" "}
           <img
-            className="h-8 w-auto sm:h-10 max-sm:mt-4 sm:hidden"
+            className="w-auto max-sm:mt-4 sm:hidden ml-2"
             src={plane_logo_white}
-            alt="Logo"
-          />
-          <img
-            className="w-auto max-sm:mt-4 max-sm:hidden ml-2"
-            src={beta_badge}
             alt="Logo"
           />
           <img
@@ -56,10 +50,19 @@ const Navbar = () => {
             src={beta_badge}
             alt="Logo"
           />
+          <img
+            className="w-auto max-sm:mt-4 max-sm:hidden ml-2"
+            src={beta_badge}
+            alt="Logo"
+          />
         </Link>
         <div className="flex space-x-4">
-          <GlowDarkPrimary styling={"px-4 py-2 rounded-3xl w-auto"}>About Triplio</GlowDarkPrimary>
-          <GlowBluePrimary styling={"px-4 py-2 rounded-3xl w-auto"}>Whitelist</GlowBluePrimary>
+          <GlowDarkPrimary styling={"px-4 py-2 rounded-3xl w-auto"}>
+            About aitinerary
+          </GlowDarkPrimary>
+          <GlowBluePrimary styling={"px-4 py-2 rounded-3xl w-auto"}>
+            Whitelist
+          </GlowBluePrimary>
         </div>
       </div>
     </div>

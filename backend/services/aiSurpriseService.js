@@ -1,10 +1,6 @@
 const { Configuration, OpenAIApi } = require("openai");
 const { ObjectId } = require("mongodb");
-const {
-  getLocationIDforDestination,
-  getLocationDetails,
-  getActivitiesInDestinationRadius,
-} = require("../utils/tripAdvisorApi");
+const { getLocationsFromGoogle } = require("../utils/googleMapsApi");
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -88,9 +84,6 @@ const generateSurpriseItinerary = async (db, tripId, preferences) => {
 	  Number of Travelers: ${preferences.numberOfTravelers}, 
 	  Theme: ${preferences.theme}.`;
 
-  const locationId = await getLocationIDforDestination(preferences.destination);
-  const destinationDetails = await getLocationDetails(locationId);
-
   const completion = await openai.createChatCompletion({
     model: "gpt-3.5-turbo",
     messages: [
@@ -127,43 +120,42 @@ const generateSurpriseItinerary = async (db, tripId, preferences) => {
     .map(async (day) => {
       const dayNumber = day.split("\n")[0];
       const activities = day.split("\n").slice(1);
-      const activityLocationIds = new Set();
 
       const fetchLocations = activities.map(async (activity) => {
         const match = activity.match(/\*\*(.*?)\*\*/);
         if (match) {
-          const locationIds = await getActivitiesInDestinationRadius(
+          const locations = await getLocationsFromGoogle(
             match[1],
-            destinationDetails.latitude,
-            destinationDetails.longitude
+            preferences.destination
           );
 
-          if (locationIds && locationIds.location_id) {
-            activityLocationIds.add(locationIds.location_id);
-            console.log(Array.from(activityLocationIds));
+          const selectedLocation =
+            locations[Math.floor(Math.random() * locations.length)];
+
+          if (selectedLocation) {
+            return {
+              location: selectedLocation.name,
+              lat: selectedLocation.geometry.location.lat,
+              lng: selectedLocation.geometry.location.lng,
+            };
+          } else {
+            console.error("Selected location is undefined");
+            return null;
           }
         }
-
         return null;
       });
 
-      await Promise.all(fetchLocations);
-
-      const resolvedLocations = await Promise.all(
-        Array.from(activityLocationIds).map(async (locationId) => {
-          const locationDetails = await getLocationDetails(locationId);
-          return locationDetails;
-        })
-      );
+      const locations = await Promise.all(fetchLocations);
 
       const itineraryPrompt = `The following are the selected activities and their locations for ${dayNumber.replace(
         ":",
         ""
       )}:
-      ${resolvedLocations
+      ${locations
         .map((location, index) =>
           location
-            ? `${activities[index]}: ${location.name}: ${location.description} (${location.latitude}, ${location.longitude})`
+            ? `${activities[index]}: ${location.name}`
             : `${activities[index]}: Location not found.`
         )
         .join("\n")}
@@ -192,9 +184,10 @@ const generateSurpriseItinerary = async (db, tripId, preferences) => {
       const detailedItinerary =
         detailedItineraryCompletion.data.choices[0]?.message?.content;
 
+      // filter out nulls (activities without a location)
       return {
         day: dayNumber.replace(":", ""),
-        locations: resolvedLocations,
+        locations: locations.filter((location) => location),
         detailedItinerary:
           detailedItinerary || "Detailed itinerary not available.",
       };

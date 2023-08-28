@@ -1,4 +1,5 @@
-export const API_URL = "/api";
+// export const API_URL = "/api";
+export const API_URL = "http://localhost:5000/api";
 
 export const BUDGET_OPTIONS = [
   { value: "affordable", label: "Affordable" },
