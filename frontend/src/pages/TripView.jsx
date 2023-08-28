@@ -323,15 +323,20 @@ const TripView = () => {
               </div>
             </div>
             <div className="relative z-5 w-full h-screen mt-[-8.5rem]">
-            {isLoaded && (
-              <GoogleMap
-                mapContainerStyle={containerStyle}
-                center={center}
-                onLoad={onLoad}
-                onUnmount={onUnmount}
-                options={{ styles: darkMode, mapTypeControl: false }}
-              />
-            )}
+              {isLoaded && (
+                <GoogleMap
+                  mapContainerStyle={containerStyle}
+                  center={center}
+                  onLoad={onLoad}
+                  onUnmount={onUnmount}
+                  options={{
+                    styles: darkMode,
+                    mapTypeControl: false,
+                    streetViewControl: false,
+                    fullscreenControl: false,
+                  }}
+                />
+              )}
             </div>
           </div>
         </div>
