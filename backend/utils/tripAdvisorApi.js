@@ -2,7 +2,7 @@ const getLocationIDforDestination = async (destination) => {
   const options = {
     method: "GET",
     headers: { accept: "application/json" },
-    "User-Agent": "Triplio",
+    "User-Agent": "aitinerary",
   };
 
   let response = await fetch(
@@ -19,7 +19,7 @@ const getLocationDetails = async (locationId) => {
   const options = {
     method: "GET",
     headers: { accept: "application/json" },
-    "User-Agent": "Triplio",
+    "User-Agent": "aitinerary",
   };
 
   let response = await fetch(
@@ -48,7 +48,7 @@ const getActivitiesInDestinationRadius = async (
   const options = {
     method: "GET",
     headers: { accept: "application/json" },
-    "User-Agent": "Triplio",
+    "User-Agent": "aitinerary",
   };
 
   let response = await fetch(
@@ -70,7 +70,7 @@ const getLocationReviews = async (locationId) => {
   const options = {
     method: "GET",
     headers: { accept: "application/json" },
-    "User-Agent": "Triplio",
+    "User-Agent": "aitinerary",
   };
 
   let response = await fetch(

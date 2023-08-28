@@ -1,6 +1,6 @@
 <a name="readme-top"></a>
 
-# Triplio ✈️
+# aitinerary ✈️
 
 <details>
   <summary>Table of Contents</summary>
@@ -126,8 +126,8 @@ sudo apt install make
 1. Clone the repository:
 
    ```bash
-   git clone git@github.com:triplio/triplio_app.git
-   cd triplio
+   git clone git@github.com:Kalasky/aitinerary.git
+   cd aitinerary
    ```
 
 2. Copy the `env.sample` file to `.env` in the root directory:

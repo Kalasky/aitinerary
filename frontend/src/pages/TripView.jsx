@@ -14,7 +14,7 @@ const TripView = () => {
   const [tripData, setTripData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTabIndex, setActiveTabIndex] = useState(0);
-  const [destination, setDestination] = useState("Triplio");
+  const [destination, setDestination] = useState("aitinerary");
   const [mapInstance, setMapInstance] = useState(null);
   const [polylines, setPolylines] = useState([]);
   const [center, setCenter] = useState({
