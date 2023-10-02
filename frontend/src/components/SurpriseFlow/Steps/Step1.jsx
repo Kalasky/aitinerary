@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 import * as Form from "@radix-ui/react-form";
 import SimpleToast from "../../ui/Toast";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+// import { Link } from "react-router-dom";
 
 const Step1 = ({
   preferences,
