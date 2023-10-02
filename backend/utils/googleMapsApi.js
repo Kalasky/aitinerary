@@ -9,7 +9,6 @@ const getLocationsFromGoogle = async (activity, destination) => {
         key: process.env.VITE_GOOGLE_MAPS_API_KEY,
       },
     });
-    console.log(response.data.results.length);
 
     return response.data.results;
   } catch (e) {

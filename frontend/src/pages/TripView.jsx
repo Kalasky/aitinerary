@@ -1,6 +1,7 @@
 import { API_URL } from "../utils/constants";
 import * as Tabs from "@radix-ui/react-tabs";
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import SimpleAlertDialog from "../components/ui/AlertDialog";
 import wavy_check from "../assets/CircleWavyCheck.svg";
@@ -10,16 +11,17 @@ import { darkMode } from "../data/mapStyles";
 import LoadingTrip from "../components/LoadingTrip";
 
 const TripView = () => {
+  const navigate = useNavigate();
   let { tripId, duration } = useParams();
   const [tripData, setTripData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [destination, setDestination] = useState("aitinerary");
   const [mapInstance, setMapInstance] = useState(null);
   const [polylines, setPolylines] = useState([]);
   const [center, setCenter] = useState({
-    lat: tripData ? tripData.detailedItinerary[0].locations[0].lat : 0,
-    lng: tripData ? tripData.detailedItinerary[0].locations[0].lng : 0,
+    lat: 0,
+    lng: 0,
   });
 
   const markersRef = useRef([]);
@@ -34,44 +36,99 @@ const TripView = () => {
     height: "100%",
   };
 
+  const formatItinerary = (itinerary) => {
+    const sentences = itinerary.split(". ");
+    const formatted = sentences.map((sentence, index) => (
+      <div key={index} className="mb-[10px]">
+        {sentence.endsWith(".") ? sentence : `${sentence}.`}
+      </div>
+    ));
+
+    return <div className="text-base leading-[1.5]">{formatted}</div>;
+  };
+
   useEffect(() => {
+    let retryCount = 0;
+    const maxRetries = 5;
+
     const fetchTripData = async () => {
       try {
         const res = await fetch(`${API_URL}/trip/getTrip/${tripId}`);
         if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
+          throw new Error(`HTTP error, status: ${res.status}`);
         }
 
         const data = await res.json();
+        console.log(data);
 
-        if (
-          !data.detailedItinerary ||
-          data.detailedItinerary.length < duration
-        ) {
-          setTimeout(fetchTripData, 2000);
-        } else {
-          console.log(data);
+        if (data && data.detailedItinerary) {
+          retryCount = 0;
+
+          const days = data.detailedItinerary
+            .split("Day ")
+            .slice(1)
+            .map((dayStr) => {
+              const [dayNumber, ...activities] = dayStr.split(":\n- ");
+              return {
+                day: `Day ${dayNumber}`,
+                activities: activities.join(":\n- ").split("\n- "),
+              };
+            });
+
           setDestination(data.preferences.destination);
-          setTripData(data);
+          setTripData({ ...data, detailedItinerary: days });
+
           setIsLoading(false);
+        } else {
+          if (retryCount < maxRetries) {
+            retryCount++;
+            setTimeout(fetchTripData, 2000);
+          } else {
+            console.log("Max retries reached");
+            setIsLoading(false);
+            navigate("/");
+          }
         }
       } catch (error) {
         console.error(`Failed to fetch trip data: ${error.message}`);
+        setIsLoading(false);
       }
     };
+
     fetchTripData();
-  }, [tripId, setTripData, duration]);
+  }, [tripId, duration]);
+
+  const filterLocationsForDay = (dayActivities, allLocations) => {
+    return allLocations.filter((location) =>
+      dayActivities.some((activity) => activity.includes(location.location))
+    );
+  };
 
   const onLoad = useCallback(
     function callback(map) {
+      const activeDay = tripData?.detailedItinerary?.[activeTabIndex];
+      console.log("Active Tab Index:", activeTabIndex);
+      setActiveTabIndex(activeTabIndex);
+      if (!map || !activeDay) {
+        return;
+      }
+
+      const filteredLocations = filterLocationsForDay(
+        activeDay.activities,
+        tripData.locations
+      );
+
+      if (filteredLocations.length === 0) {
+        console.error("No locations found for the selected day");
+        return;
+      }
+
       setMapInstance(map);
       const directionsService = new window.google.maps.DirectionsService();
       const bounds = new window.google.maps.LatLngBounds();
-      const activeTabLocations =
-        tripData.detailedItinerary[activeTabIndex].locations;
 
       markersRef.current.forEach((marker) => marker.setMap(null));
-      markersRef.current = activeTabLocations.map((location) => {
+      markersRef.current = filteredLocations.map((location) => {
         bounds.extend(
           new window.google.maps.LatLng(location.lat, location.lng)
         );
@@ -84,19 +141,19 @@ const TripView = () => {
 
       function calcRoute() {
         const start = new window.google.maps.LatLng(
-          activeTabLocations[0].lat,
-          activeTabLocations[0].lng
+          filteredLocations[0].lat,
+          filteredLocations[0].lng
         );
         const end = new window.google.maps.LatLng(
-          activeTabLocations[activeTabLocations.length - 1].lat,
-          activeTabLocations[activeTabLocations.length - 1].lng
+          filteredLocations[filteredLocations.length - 1].lat,
+          filteredLocations[filteredLocations.length - 1].lng
         );
         const waypts = [];
-        for (let i = 1; i < activeTabLocations.length - 1; i++) {
+        for (let i = 1; i < filteredLocations.length - 1; i++) {
           waypts.push({
             location: new window.google.maps.LatLng(
-              activeTabLocations[i].lat,
-              activeTabLocations[i].lng
+              filteredLocations[i].lat,
+              filteredLocations[i].lng
             ),
             stopover: true,
           });
@@ -118,7 +175,10 @@ const TripView = () => {
 
       calcRoute();
 
-      map.fitBounds(bounds);
+      setTimeout(() => {
+        map.setCenter(bounds.getCenter());
+        map.fitBounds(bounds);
+      }, 0);
     },
     [tripData, activeTabIndex]
   );
@@ -157,19 +217,20 @@ const TripView = () => {
       markersRef.current.forEach((marker) => marker.setMap(null));
     }
 
-    if (
-      mapInstance &&
-      tripData &&
-      tripData.detailedItinerary[activeTabIndex].locations
-    ) {
+    const activeDay = tripData?.detailedItinerary?.[activeTabIndex];
+    const activeDayLocations = tripData?.locations;
+
+    if (mapInstance && activeDay && activeDayLocations) {
       onLoad(mapInstance);
     }
 
-    if (tripData && tripData.detailedItinerary[activeTabIndex].locations[0]) {
+    if (activeDayLocations?.[0].lat && activeDayLocations?.[0].lng) {
       setCenter({
-        lat: tripData.detailedItinerary[activeTabIndex].locations[0].lat,
-        lng: tripData.detailedItinerary[activeTabIndex].locations[0].lng,
+        lat: activeDayLocations[0].lat,
+        lng: activeDayLocations[0].lng,
       });
+    } else {
+      console.error("No locations found");
     }
   }, [activeTabIndex, tripData, mapInstance]);
 
@@ -180,24 +241,30 @@ const TripView = () => {
   useEffect(() => {
     if (mapInstance && tripData) {
       const bounds = new window.google.maps.LatLngBounds();
-      const activeTabLocations =
-        tripData.detailedItinerary[activeTabIndex].locations;
+      const activeDay = tripData.detailedItinerary[activeTabIndex];
 
-      activeTabLocations.forEach((location) => {
-        bounds.extend(
-          new window.google.maps.LatLng(location.lat, location.lng)
-        );
-      });
+      if (activeDay && activeDay.locations) {
+        const activeTabLocations = activeDay.locations;
 
-      setTimeout(() => {
-        mapInstance.fitBounds(bounds);
-      }, 0);
+        activeTabLocations.forEach((location) => {
+          bounds.extend(
+            new window.google.maps.LatLng(location.lat, location.lng)
+          );
+        });
+
+        setTimeout(() => {
+          mapInstance.fitBounds(bounds);
+        }, 0);
+      }
     }
   }, [activeTabIndex, mapInstance, tripData]);
 
   return (
     <div>
-      {isLoading || !tripData || !tripData.detailedItinerary ? (
+      {isLoading ||
+      !tripData ||
+      !tripData.detailedItinerary ||
+      tripData.locations.length < 1 ? (
         <LoadingTrip destination={destination} />
       ) : (
         <div className="h-full relative">
@@ -222,12 +289,20 @@ const TripView = () => {
                     </Tabs.List>
                     <Tabs.Content value={activeTabIndex.toString()}>
                       <div className="px-7 py-2">
-                        <h1 className="text-base text-white">
-                          {
-                            tripData.detailedItinerary[activeTabIndex]
-                              .detailedItinerary
-                          }
-                        </h1>
+                        {tripData.detailedItinerary[activeTabIndex]
+                          ?.activities ? (
+                          <div className="text-base text-white">
+                            {formatItinerary(
+                              tripData.detailedItinerary[
+                                activeTabIndex
+                              ].activities.join(". ")
+                            )}
+                          </div>
+                        ) : (
+                          <h1 className="text-base text-white">
+                            No activities available for this day.
+                          </h1>
+                        )}
                       </div>
                     </Tabs.Content>
                   </Tabs.Root>

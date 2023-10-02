@@ -345,7 +345,7 @@ function RenderSurpriseSteps({
                 />
                 <stop
                   offset="50%"
-                  style={{ stopColor: "white", stopOpacity: 1 }}
+                  style={{ stopColor: "white", stopOpacity: 0.99 }}
                 />
               </linearGradient>
               <mask id="mask1" maskUnits="objectBoundingBox">
