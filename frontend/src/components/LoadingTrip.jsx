@@ -6,14 +6,11 @@ import drinkIcon from "../assets/drinkIcon.svg";
 import foodIcon from "../assets/foodIcon.svg";
 import burgerIcon from "../assets/burgerIcon.svg";
 
-const LoadingTrip = ({ destination }) => {
+const LoadingTrip = () => {
   const [stopImageOne, setStopImageOne] = useState("");
   const [stopImageTwo, setStopImageTwo] = useState("");
   const [stopImageThree, setStopImageThree] = useState("");
   const generating = "GENERATING";
-  const destinationProp = destination
-    ? `${destination}`
-    : "Creating your adventure...";
 
   const generatingSentence = {
     hidden: { opacity: 1 },
@@ -124,18 +121,6 @@ const LoadingTrip = ({ destination }) => {
     <motion.div>
       <motion.div className="m-auto absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-sm:w-full flex items-center max-sm:justify-center">
         <div className="hero-text-container">
-          <motion.div
-            className="hero-item sm"
-            variants={generatingSentence}
-            initial="hidden"
-            animate="visible"
-          >
-            {destinationProp.split("").map((char, index) => (
-              <motion.span key={char + "-" + index} variants={generatingLetter}>
-                {char}
-              </motion.span>
-            ))}
-          </motion.div>
           <motion.div
             className="hero-item sm"
             variants={generatingSentence}

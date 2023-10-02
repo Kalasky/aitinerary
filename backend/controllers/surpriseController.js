@@ -44,7 +44,11 @@ const addSurpriseTrip = async (req, res) => {
     const tripRes = await req.app.locals.db.collection("trips").insertOne(trip);
 
     const db = req.app.locals.db;
-    generateSurpriseItinerary(db, tripRes.insertedId.toString(), trip.preferences);
+    generateSurpriseItinerary(
+      db,
+      tripRes.insertedId.toString(),
+      trip.preferences
+    );
 
     res.status(201).json({ tripId: tripRes.insertedId.toString() });
   } catch (err) {

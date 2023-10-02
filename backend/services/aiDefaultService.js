@@ -1,4 +1,3 @@
-const { Configuration, OpenAIApi } = require("openai");
 const { ObjectId } = require("mongodb");
 const {
   getLocationIDforDestination,
@@ -6,10 +5,11 @@ const {
   getActivitiesInDestinationRadius,
 } = require("../utils/tripAdvisorApi");
 
-const configuration = new Configuration({
+const OpenAI = require("openai");
+
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(configuration);
 
 const generateDefaultItinerary = async (db, tripId, preferences) => {
   if (!preferences) {
@@ -22,17 +22,23 @@ const generateDefaultItinerary = async (db, tripId, preferences) => {
 	Duration: ${preferences.duration} days
 	Prompt: ${preferences.prompt}`;
 
-  const locationId = await getLocationIDforDestination(preferences.destinationCity);
+  const locationId = await getLocationIDforDestination(
+    preferences.destinationCity
+  );
   const destinationDetails = await getLocationDetails(locationId);
-  console.log(`Destination details: ${JSON.stringify(destinationDetails)} for ${locationId}`);
+  console.log(
+    `Destination details: ${JSON.stringify(
+      destinationDetails
+    )} for ${locationId}`
+  );
 
-  const completion = await openai.createChatCompletion({
+  const completion = await openai.chat.completions.create({
     model: "gpt-3.5-turbo",
     messages: [
       {
         role: "system",
         content:
-          "Make a trip itinerary with 5 activities max for each day. You must always include a type of activity surrounded by **. You must always provide 5 activities surrounded by **. Activities must be things like: **Gelato**, **ancient ruins**, **art museum**, and much more. Do it based on the following preferences:",
+          "Make a trip itinerary with 5 activities for each day. You must always include a type of activity surrounded by **. You must always provide 5 activities surrounded by **. Activities must be things like: **Gelato**, **ancient ruins**, **art museum**, and much more. Do it based on the following preferences:",
       },
       {
         role: "user",
@@ -46,15 +52,15 @@ const generateDefaultItinerary = async (db, tripId, preferences) => {
     presence_penalty: 0.8,
   });
 
-  if (!completion.data.choices || !completion.data.choices[0].message.content) {
+  if (!completion.choices || !completion.choices[0].message.content) {
     console.error(
       "Unexpected completion data from OpenAI",
-      completion.data.choices[0].message.content
+      completion.choices[0].message.content
     );
     return [];
   }
 
-  const itineraryText = completion.data.choices[0].message.content;
+  const itineraryText = completion.choices[0].message.content;
 
   const itineraryPromises = itineraryText
     .split("\n\n")
@@ -104,7 +110,7 @@ const generateDefaultItinerary = async (db, tripId, preferences) => {
       .join("\n")}
 		`;
 
-      const detailedItineraryCompletion = await openai.createChatCompletion({
+      const detailedItineraryCompletion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [
           {
@@ -125,7 +131,7 @@ const generateDefaultItinerary = async (db, tripId, preferences) => {
       });
 
       const detailedItinerary =
-        detailedItineraryCompletion.data.choices[0]?.message?.content;
+        detailedItineraryCompletion.choices[0]?.message?.content;
 
       return {
         day: dayNumber.replace(":", ""),

@@ -42,12 +42,12 @@ const Step1 = ({
 
       <div className="p-5 m-auto absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-sm:w-full flex items-center max-sm:justify-center">
         <div className="buttons-container">
-          <Link to="/default">
+          {/* <Link to="/default">
             <button className="bg-slate-700 rounded-md p-2">Default</button>
           </Link>
           <Link to="/surprise">
             <button className="bg-slate-700 rounded-md p-2">Surprise Me</button>
-          </Link>
+          </Link> */}
         </div>
         <Form.Root onSubmit={handleSubmit}>
           <Form.Field name="departureCity">
