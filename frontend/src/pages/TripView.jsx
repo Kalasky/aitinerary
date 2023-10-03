@@ -49,7 +49,7 @@ const TripView = () => {
 
   useEffect(() => {
     let retryCount = 0;
-    const maxRetries = 5;
+    const maxRetries = 10;
 
     const fetchTripData = async () => {
       try {
@@ -65,12 +65,12 @@ const TripView = () => {
           retryCount = 0;
 
           const days = data.detailedItinerary
-            .split("Day ")
+            .split(/\nDay \d+:/)
             .slice(1)
-            .map((dayStr) => {
-              const [dayNumber, ...activities] = dayStr.split(":\n- ");
+            .map((dayStr, index) => {
+              const activities = dayStr.split(":\n- ");
               return {
-                day: `Day ${dayNumber}`,
+                day: `Day ${index + 1}`,
                 activities: activities.join(":\n- ").split("\n- "),
               };
             });
@@ -295,7 +295,7 @@ const TripView = () => {
                             {formatItinerary(
                               tripData.detailedItinerary[
                                 activeTabIndex
-                              ].activities.join(". ")
+                              ].activities.join("\n ")
                             )}
                           </div>
                         ) : (

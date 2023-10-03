@@ -82,7 +82,6 @@ const fetchLocationsForActivities = async (activities, destination) => {
     const locations = await getLocationsFromGoogle(activity, destination);
     const selectedLocation =
       locations[Math.floor(Math.random() * locations.length)];
-    console.log("selectedLocation", selectedLocation.name);
 
     if (selectedLocation) {
       return {
